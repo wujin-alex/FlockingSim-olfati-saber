@@ -8,7 +8,7 @@ def sigma_norm(z, epsilon):
         return (np.sqrt(1 + epsilon * z**2) - 1) / epsilon
     elif isinstance(z, np.ndarray):
         if z.ndim == 1:
-            if z.shape[0] >= 3:
+            if z.shape[0] > 3:
                 return (np.sqrt(1 + epsilon * z**2) - 1) / epsilon
             else:
                 return (np.sqrt(1 + epsilon * np.linalg.norm(z)**2) - 1) / epsilon
@@ -26,7 +26,7 @@ def sigma_norm_gradient(z, epsilon):
     elif isinstance(z, np.ndarray):
         if z.ndim == 1:
             ## 如果维度大小大于3，认为是多个点，否则认为是维度为2/3的单点
-            if z.shape[0] >= 3:
+            if z.shape[0] > 3:
                 return z / np.sqrt(1 + epsilon * z**2)
             else:
                 return z / np.sqrt(1 + epsilon * np.linalg.norm(z)**2)

@@ -83,8 +83,8 @@ def algo(agent_pos, agent_vel, agent_acc):
                 continue
             qj = agent_pos[:,j]
             pj = agent_vel[:,j]
-            dq = qj - qi
-            dis = np.linalg.norm(dq)   # 计算agent-i与agent-j的距离
+            dq = qj - qi              # 计算agent-i与agent-j的距离
+            dis = np.linalg.norm(dq)  # 计算agent-i与agent-j的距离绝对值
             # my_print(flag_print, "qj={}, pj={}".format(qj, pj))
             # my_print(cur_print_flag, "dq={}, dis={}".format(dq, dis))
 
@@ -141,7 +141,7 @@ def algo(agent_pos, agent_vel, agent_acc):
         ## 计算加速度
         u_sum = u_g_sum + u_v_sum + u_p
 
-        ## 更新
+        ## 更新智能体运动状态
         agent_acc[:,i] = u_sum
         if np.linalg.norm(agent_acc[:,i]) > max_acc:
             agent_acc[:,i] = agent_acc[:,i] / np.linalg.norm(agent_acc[:,i]) * max_acc
@@ -206,6 +206,7 @@ def sim_loop():
     def update(n):
         ## 运行集群算法，得到更新后的位置
         algo(agent_pos, agent_vel, agent_acc)
+
         ## 绘图
         ax.clear()
         ax_action.clear()
@@ -219,7 +220,7 @@ def sim_loop():
         scatter1 = ax.scatter(agent_pos[0,:], agent_pos[1,:], c=c_list)
         for idx, (tx,ty) in enumerate(zip(agent_pos[0,:], agent_pos[1,:])):
             ax.text(tx, ty, '{}'.format(idx))
-        # 绘制智能体之间连线
+        # TODO: 绘制智能体之间连线
         
         # 绘制箭头
         X = agent_pos[0,:]
@@ -229,9 +230,9 @@ def sim_loop():
         U_a = agent_acc[0,:]
         V_a = agent_acc[1,:]
         ax.quiver(X, Y, U_v, V_v, scale=10, color="blue")         # 绘制速度箭头 scale是缩小比例
-        ax.quiver(X, Y, U_a, V_a, 20, color="yellow")
+        ax.quiver(X, Y, U_a, V_a, scale=20, color="yellow")       # 绘制加速度箭头
 
-        # 绘制
+        # 绘制action曲线
         draw_action(ax_action, Params, 8)                         # 选择一个智能体绘制
         
         ax.legend()
