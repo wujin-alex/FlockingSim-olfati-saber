@@ -24,8 +24,8 @@ dt = 1.0/interval
 cnt = 0
 
 flag_draw_arrow_acc = False                       # 画图控制（根据需要设置），是否绘制智能体加速度向量
-flag_draw_arrow_vel = True                        # 画图控制（根据需要设置），是否绘制智能体速度向量
-flag_draw_neighbor_line = False                   # 画图控制（根据需要设置），是否绘制智能体与邻居节点的连线
+flag_draw_arrow_vel = True                       # 画图控制（根据需要设置），是否绘制智能体速度向量
+flag_draw_neighbor_line = False                    # 画图控制（根据需要设置），是否绘制智能体与邻居节点的连线
 ## 颜色
 # c_list= np.random.rand(num_agent) * 255
 c_list = np.linspace(0, 255, num_agent)           # 颜色列表，用于绘制
