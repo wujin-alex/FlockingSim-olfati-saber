@@ -361,3 +361,79 @@ $$
 用$(q_\gamma,p_\gamma)$来表示$\gamma-agent$的状态，$\gamma-agent$是动态/静态agent，用来描述集群目标期望。
 
 **Remark 5.** 事实上，只有在一定非常严格的初始条件下规则（24）才可以实现集群控制，对于大多数初始条件，或者规模较大的集群（包含的agent数量>10时），（24）通常无法实现集群控制，反而导致整个集群破碎为多个小集群而互相分离。相比来说，（26）不会导致集群分离情况，所以算法二是一个真正的集群算法，算法一只是为了更好的对算法二进行理解而已。
+
+# Flocking with Obstacle Avoidance
+
+$\beta-agent$是
+
+1）确定$\alpha-agent$的邻居障碍物$O_k$序号集合，并定义为$N_i^{\beta}$；
+
+2）在障碍物$O_k$边界位置$\hat q_{i,k}$上创建一个虚拟的$\beta-agent$，满足如下条件：
+$$
+\hat q_{i,k}=argmin_{x\in O_k}\left\| x-q_i\right\|
+$$
+3）在势能函数中增加新项$\psi_\beta(\left\| \hat q_{i,k}-q_i\right\|_\sigma)$
+
+## $\beta$-Neighbors of $\alpha$-Agents and ($\alpha,\beta$)-Nets
+
+定义$V_\alpha$=$\{1,2,...n\}$表示$\alpha$-Agents的序号集合，$V_\beta$=$\{1',2',...l'\}$表示$\beta$-Agents的序号集合，
+
+##  Constrained $\alpha$-Lattices
+
+##  Multi-Species Collective Potentials
+
+定义在位置$q_i$的$\alpha$-agent与邻居$\beta$-agent的邻接矩阵：
+$$
+b_{i,k}(q)=\rho_h(\left|\hat q_{i,k}-q_i\right\|_\sigma/d_\beta)  \tag{64}\label{euq64}
+$$
+这里$d_\beta<r_\beta$，其中$d_\beta=\left\|d'\right\|_\sigma$，$r_\beta=\left\|r'\right\|_\sigma$，定义斥力action function为：
+$$
+\phi_\beta(z)=\rho_h(z/d_\beta)(\sigma_1(z-d_\beta)-1) \tag{65}\label{equ65}
+$$
+这里$\sigma_1(z)=z/\sqrt{1+z^2}$。
+
+## Flocking Algorithm in Presence of Obstacles
+
+算法3：该算法包含3项
+$$
+u_i=u_i^\alpha+u_i^\beta+u_i^\gamma \tag{67}\label{eq67}
+$$
+这里$u_i^{\alpha}$表示$(\alpha,\alpha)$作用力，$u_i^{\beta}$表示$(\alpha,\beta)$作用力，$u_i^{\gamma}$表示导航项 作用力，详细表示如下：
+$$
+u_i^{\alpha}=c_1^\alpha\sum_{j\in N_i^\alpha}{\phi_\alpha(\left\|q_j-q_i\right\|_\sigma)\bold n_{ij}} +
+c_2^\alpha\sum_{j\in N_i^\alpha}{a_{ij}(q)(p_j-p_i)} \tag{68}\label{equ68}
+$$
+
+$$
+u_i^\beta=c_1^\beta\sum_{k\in N_i^\beta}{\phi_\beta(\left\|\hat q_{i,k}-q_i\right\|_\sigma){\bold {\hat n}_{i,k}}} +
+c_2^\beta\sum_{j\in N_i^\beta}{b_{i,k}(q)(\hat p_{i,k}-p_i)} \tag{69}\label{equ69}
+$$
+
+$$
+u_i^{\gamma}=-c_1^{\gamma}\sigma_1(q_i-q_r) - c_2^{\gamma}(p_i-p_r) \tag{70}\label{euq70}
+$$
+
+这里$\sigma_1(z)=z/\sqrt{1+\left\|z\right\|^2}$，向量$\bold n_{ij}$、$\bold {\hat n}_{i,k}$为：
+$$
+\bold n_{ij}=\frac{q_j-q_i}{\sqrt{1+\epsilon\left\|q_j-q_i\right\|^2}},
+\bold {\hat n}_{i,k}=\frac{\hat q_{i,k}-q_i}{\sqrt{1+\epsilon\left\|\hat q_{i,k}-q_i\right\|^2}}
+$$
+
+## Calculation of Position and Velocity of β-Agents
+
+定义$\hat q_{i,k}$，$\hat p_{i,k}$表示状态为$(q_i,p_i)$的$\alpha$-agent在障碍物$O_k$上生成的$\beta$-agent的位置与速度状态。
+
+1）对于线状障碍物，归一化向量为$\bold a_k$，经过一个点$y_k$，则$\beta$-agent的位置与速度如下：
+$$
+\hat q_{i,k}=Pq_i+(I-P)y_k,\\
+\hat p_{i,k}=Pp_i
+$$
+其中$P=I-\bold a_k\bold a_k^T$是投影矩阵。
+
+2）对于球状障碍物，半径为$R_k$，中心点为$y_k$，则$\beta$-agent的位置与速度如下：
+$$
+\hat q_{i,k}=\mu q_i+(1-\mu)y_k,\\
+\hat p_{i,k}=\mu Pp_i
+$$
+其中$\mu=R_k/\left\|q_i-y_k\right\|$，$\bold  a_k=(q_i-y_k)/\left\|q_i-q_k\right\|$，$P=I-\bold a_k \bold a_k^T$。
+

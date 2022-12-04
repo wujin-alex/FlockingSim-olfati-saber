@@ -93,4 +93,23 @@ def action_function(z, epsilon, r, h, d, a, b):
     return res
 
 
+def get_beta_agent_hyperplane(qi, pi):
+    pass
 
+def  get_beta_agent_sphere(qi, pi, y, r):
+    """
+    qi: a-agent位置
+    pi: a-agent速度
+    y: 障碍物圆心坐标
+    r: 障碍物半径
+    """
+    u = r / np.linalg.norm(qi-y)
+    a = (qi-y) / np.linalg.norm(qi-y)
+    a = a.reshape(-1, 1)
+    P = np.eye(qi.shape[0]) - np.dot(a, a.T)
+
+    qk = u*qi + (1-u)*y
+    pk = u*np.dot(P,pi.reshape(-1,1))
+    pk = pk.reshape(-1)
+
+    return qk,pk
