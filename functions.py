@@ -92,6 +92,21 @@ def action_function(z, epsilon, r, h, d, a, b):
     res = bump_function(z/r_alpha, h) * uneven_sigmoidal_fucntion(z-d_alpha, a, b)
     return res
 
+def bik(qi, qk, epsilon, h, d_obs):
+    """
+    Eq (64)
+    """
+    q_sigma = sigma_norm(qk - qi, epsilon)
+    d_sigma = sigma_norm(d_obs, epsilon)
+    return bump_function(q_sigma/d_sigma, h)
+
+def repulsive_action_function(z, epsilon, d_obs, h):
+    """
+    Eq (65)
+    """
+    d_sigma = sigma_norm(d_obs, epsilon)
+    res = bump_function(z/d_sigma, h) * (sigma_norm_gradient(z-d_sigma, 1) - 1)
+    return res
 
 def get_beta_agent_hyperplane(qi, pi):
     pass

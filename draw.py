@@ -93,9 +93,31 @@ def draw(params):
     draw_uneven_sigmoidal_fucntion(ax_usf, params)
 
 
+def draw_repulsive_action_function(axes, param):
+    num = 100
+    z = np.linspace(0, 20, num)
+
+    fun_ra = ft.repulsive_action_function(z, param.epsilon, param.d_obs, param.h)
+
+    # 绘制action function曲线
+    axes.plot(z, fun_ra, label='repulsive action')
+
+    ## 参数d_obs
+    x = ft.sigma_norm(param.d_obs, param.epsilon)
+    y = ft.repulsive_action_function(x, param.epsilon, param.d_obs, param.h)
+    axes.scatter(x, y, s=80, c='red', label='d_obs_sigma={:.1f}'.format(x))
+
+    axes.set_title(label="action function, eps={},d_obs={},h={}".format(param.epsilon,param.d_obs,param.h), loc='center')
+    axes.legend()
+
+def draw_obs(params):
+    fig = plt.figure(figsize=(10, 10))
+    ax_rac = fig.add_subplot(2,2,1)
+    draw_repulsive_action_function(ax_rac, params)
 
 if __name__ == '__main__':
     print("draw")
-    draw(Params)
+    # draw(Params)
     draw(Params2)
+    draw_obs(Params_obs)
     plt.show()

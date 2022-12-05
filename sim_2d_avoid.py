@@ -17,9 +17,9 @@ flag_print = False
 
 sim_dim = 2                                   # 仿真维度，2维
 num_agent = 2                                # 仿真智能体数量
-area_range = (10,10)                          # 区域大小，10x10m
+area_range = (20,20)                          # 区域大小，10x10m
 
-pos_desire = np.array([10,15])                # 集群导航，集群期望位置，可动态变动
+pos_desire = np.array([25,10])                # 集群导航，集群期望位置，可动态变动
 vel_desire = np.array([0,0])                  # 集群导航，集群期望速度，期望位置的导数
 
 max_acc = 20        # 最大加速度m^2/s
@@ -31,6 +31,9 @@ interval = 50
 dt = 1.0/interval
 cnt = 0
 
+flag_draw_arrow_acc = True                       # 画图控制（根据需要设置），是否绘制智能体加速度向量
+flag_draw_arrow_vel = True                       # 画图控制（根据需要设置），是否绘制智能体速度向量
+flag_draw_neighbor_line = True                    # 画图控制（根据需要设置），是否绘制智能体与邻居节点的连线
 ## 颜色
 # c_list= np.random.rand(num_agent) * 255
 c_list = np.linspace(0, 255, num_agent)
@@ -51,9 +54,11 @@ N_action = np.zeros((num_agent,num_agent))          # 根据智能体i与j的距
 
 ## 设置障碍物
 num_obstacles = 2
-obs_sphere_center = np.dot(np.diag(np.array(area_range)), np.random.randn(sim_dim, num_obstacles))
-# obs_sphere_center = np.array([3]*sim_dim)
-obs_sphere_radius = np.random.randint(1,5, size=num_obstacles)
+# obs_sphere_center = np.dot(np.diag(np.array((10,10))), np.random.randn(sim_dim, num_obstacles))
+# obs_sphere_radius = np.random.randint(1,5, size=num_obstacles)
+obs_sphere_center = np.array([[10, 10],
+                            [-5, 20]])
+obs_sphere_radius = np.array([5, 4])
 
 N_beta_01  = np.zeros((num_agent, num_obstacles))          # 保存智能体与障碍物连接关系，Nik表示智能体i与障碍物k的连接关系，0代表不连接，1代表连接
 N_beta_pos = np.zeros((num_agent, num_obstacles, sim_dim))   # b-agent位置，第i行表示所有障碍物相对于第i个智能体的b-agent（这里暂不考虑距离限制条件）
@@ -91,6 +96,8 @@ def algo(agent_pos, agent_vel, agent_acc):
         qi = agent_pos[:,i]
         pi = agent_vel[:,i]
         my_print(flag_print, "qi={}, pi={}".format(qi, pi))
+
+        ''' 1、协同与避碰，alpha-alpha agent '''
         for j in range(num_agent):
             my_print(flag_print, "--- i={}, j={}".format(i, j))
             if i==j:
@@ -109,14 +116,14 @@ def algo(agent_pos, agent_vel, agent_acc):
                 u_g_nij = ft.nij(qi, qj, params.epsilon)
                 u_g = u_g_af * u_g_nij
                 my_print(flag_print, "u_g={}*{}={}".format(u_g_af, u_g_nij, u_g))
-                u_g_sum += u_g
+                u_g_sum += params.c1_alpha * u_g
 
                 ## 计算速度项
                 u_v_a = ft.aij(qi, qj, params.epsilon, params.r, params.h)
                 u_v_p = (pj - pi)
                 u_v = u_v_a * u_v_p
                 my_print(flag_print, "u_v={}*{}={}".format(u_v_a, u_v_p, u_v))
-                u_v_sum += u_v
+                u_v_sum += params.c2_alpha * u_v
 
                 ## 若距离小于r，说明j是i的邻居
                 N_i.append(j)
@@ -139,7 +146,8 @@ def algo(agent_pos, agent_vel, agent_acc):
         ## 更新邻接矩阵
         N_idx.append(N_i)
 
-        ## 避障
+        '''2、避障，alpha-beta agent '''
+        u_beta = np.zeros(sim_dim)
         # 计算障碍物位置
         for k in range(num_obstacles):
             qik, pik = ft.get_beta_agent_sphere(agent_pos[:,i], agent_vel[:,i], obs_sphere_center[:,k], obs_sphere_radius[k])
@@ -150,8 +158,14 @@ def algo(agent_pos, agent_vel, agent_acc):
             dis = np.linalg.norm(dq_obs)
             if dis < params.r_obs:
                 N_beta_01[i,k] = 1
+                sigma_dq = ft.sigma_norm(qik-qi, params.epsilon)
+                ## 计算梯度项（障碍物）
+                u_beta_g = ft.repulsive_action_function(ft.sigma_norm(qik-qi, params.epsilon), params.epsilon, params.d_obs, params.h) * ft.nij(qi, qik, params.epsilon)
+                ## 计算速度项
+                u_beta_v = ft.bik(qi, qik, params.epsilon, params.h, params.d_obs) * (pik - pi)
+                u_beta += params.c1_beta * u_beta_g + params.c2_beta * u_beta_v
 
-        ## 计算位置项
+        ''' 3、导航：alpha-gamma agent '''
         dpos = pos_desire - qi
         if flag_init[i]:
             dpos_last = agent_dpos_last[:,i]
@@ -159,13 +173,13 @@ def algo(agent_pos, agent_vel, agent_acc):
         else:
             flag_init[i] = True
             u_p = params.pid_p * dpos
-            my_print(cur_print_flag, "init>>>>>")
+            
         my_print(cur_print_flag, "dpos    ={:.2f}, dpos=[{:.2f} {:.2f}]".format(np.linalg.norm(dpos), dpos[0], dpos[1]))
         my_print(cur_print_flag, "u_p_norm={:.2f}, u_p =[{:.2f} {:.2f}]".format(np.linalg.norm(u_p), u_p[0], u_p[1]))
         agent_dpos_last[:,i] = dpos
 
         ## 计算加速度
-        u_sum = u_g_sum + u_v_sum + u_p
+        u_sum = u_g_sum + u_v_sum + u_beta + u_p
 
         ## 更新智能体运动状态
         agent_acc[:,i] = u_sum
@@ -213,8 +227,8 @@ def draw_action(axes, param, agent_id):
 
 def sim_loop():
     lim_scale = 2
-    agent_pos = np.dot(np.diag(np.array(area_range)), np.random.randn(sim_dim, num_agent))
-    # agent_pos = np.dot(np.diag(np.array((1,1))), np.random.randn(sim_dim, num_agent))
+    # agent_pos = np.dot(np.diag(np.array(area_range)), np.random.randn(sim_dim, num_agent))
+    agent_pos = np.dot(np.diag(np.array((-15, 10))), np.random.randn(sim_dim, num_agent))
 
 
     ### 绘图
@@ -245,7 +259,13 @@ def sim_loop():
         scatter1 = ax.scatter(agent_pos[0,:], agent_pos[1,:], c=c_list)
         for idx, (tx,ty) in enumerate(zip(agent_pos[0,:], agent_pos[1,:])):
             ax.text(tx, ty, '{}'.format(idx))
-        # TODO: 绘制智能体之间连线
+        # 绘制智能体与邻居的连线
+        if flag_draw_neighbor_line:
+            for i in range(num_agent):
+                for j in range(i, num_agent):
+                    if N_01[i,j]>0:
+                        x,y = zip(agent_pos[:,i], agent_pos[:,j])
+                        ax.plot(x,y)
         
         # 绘制箭头
         X = agent_pos[0,:]
@@ -254,8 +274,10 @@ def sim_loop():
         V_v = agent_vel[1,:]
         U_a = agent_acc[0,:]
         V_a = agent_acc[1,:]
-        ax.quiver(X, Y, U_v, V_v, scale=10, color="blue")         # 绘制速度箭头 scale是缩小比例
-        ax.quiver(X, Y, U_a, V_a, scale=20, color="yellow")       # 绘制加速度箭头
+        if flag_draw_arrow_vel:
+            ax.quiver(X, Y, U_v, V_v, scale=10, color="blue")         # 绘制速度箭头 scale是缩小比例
+        if flag_draw_arrow_acc:
+            ax.quiver(X, Y, U_a, V_a, scale=20, color="yellow")       # 绘制加速度箭头
 
         # 绘制action曲线
         draw_action(ax_action, params, 0)                         # 选择一个智能体绘制
@@ -269,10 +291,14 @@ def sim_loop():
             ax.add_artist(draw_circle)
         # 在每个障碍物上绘制与智能体对应的beta-agent
         agent_beta_pos = N_beta_pos.reshape(-1, sim_dim).T
-        print("----", agent_beta_pos)
         scatter2 = ax.scatter(agent_beta_pos[0,:], agent_beta_pos[1,:], c=np.repeat(c_list, num_obstacles), marker='*')
 
-
+        # 连接智能体与障碍物
+        for i in range(num_agent):
+            for k in range(num_obstacles):
+                if N_beta_01[i,k] > 0:
+                    x,y = zip(agent_pos[:,i], N_beta_pos[i,k])
+                    ax.plot(x, y)
 
         ## legend
         ax.legend()

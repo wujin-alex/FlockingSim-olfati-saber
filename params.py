@@ -64,10 +64,15 @@ class Params_obs:
     pid_p = c1             # 位置控制环P参数
     pid_d = 0.5            # 位置控制环D参数
 
-    # 与障碍物相关的r,d
+    # alpha-alpha agent
+    c1_alpha = 1
+    c2_alpha = 1
+
+    # alpha-beta agent(与障碍物相关)
     r_obs = 8
     d_obs = 8
-    c1_obs = 0.1
+    c1_beta = 1
+    c2_beta = 1
 
 
     def print_param():

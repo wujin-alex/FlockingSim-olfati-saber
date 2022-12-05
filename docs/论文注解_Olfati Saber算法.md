@@ -384,13 +384,21 @@ $$
 
 定义在位置$q_i$的$\alpha$-agent与邻居$\beta$-agent的邻接矩阵：
 $$
-b_{i,k}(q)=\rho_h(\left|\hat q_{i,k}-q_i\right\|_\sigma/d_\beta)  \tag{64}\label{euq64}
+b_{i,k}(q)=\rho_h(\left\|\hat q_{i,k}-q_i\right\|_\sigma/d_\beta)  \tag{64}\label{euq64}
 $$
 这里$d_\beta<r_\beta$，其中$d_\beta=\left\|d'\right\|_\sigma$，$r_\beta=\left\|r'\right\|_\sigma$，定义斥力action function为：
 $$
 \phi_\beta(z)=\rho_h(z/d_\beta)(\sigma_1(z-d_\beta)-1) \tag{65}\label{equ65}
 $$
 这里$\sigma_1(z)=z/\sqrt{1+z^2}$。
+
+另外$-2<\phi_\beta(z)<0$。
+
+> 斥力action function曲线如下：
+>
+> ![repulsive_action_function](imgs/repulsive_action_function.png)
+
+
 
 ## Flocking Algorithm in Presence of Obstacles
 
