@@ -1,3 +1,9 @@
+"""
+二维平面内集群仿真。
+1、实现集群智能体之间的避碰与速度协同；
+2、实现避障障碍物；
+3、实现飞行至期望位置（导航位置）。
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -16,7 +22,7 @@ params.print_param()
 flag_print = False
 
 sim_dim = 2                                   # 仿真维度，2维
-num_agent = 2                                # 仿真智能体数量
+num_agent = 10                                # 仿真智能体数量
 area_range = (20,20)                          # 区域大小，10x10m
 
 pos_desire = np.array([25,10])                # 集群导航，集群期望位置，可动态变动
@@ -31,9 +37,10 @@ interval = 50
 dt = 1.0/interval
 cnt = 0
 
-flag_draw_arrow_acc = True                       # 画图控制（根据需要设置），是否绘制智能体加速度向量
-flag_draw_arrow_vel = True                       # 画图控制（根据需要设置），是否绘制智能体速度向量
-flag_draw_neighbor_line = True                    # 画图控制（根据需要设置），是否绘制智能体与邻居节点的连线
+flag_draw_arrow_acc = False                       # 画图控制（根据需要设置），是否绘制智能体加速度向量
+flag_draw_arrow_vel = False                       # 画图控制（根据需要设置），是否绘制智能体速度向量
+flag_draw_neighbor_line = True                   # 画图控制（根据需要设置），是否绘制智能体与邻居节点的连线
+flag_draw_obstacle_line = True                   # 画图控制（根据需要设置），是否绘制智能体与障碍物的连线
 ## 颜色
 # c_list= np.random.rand(num_agent) * 255
 c_list = np.linspace(0, 255, num_agent)
@@ -90,14 +97,15 @@ def algo(agent_pos, agent_vel, agent_acc):
         N_i = []
         
         u_sum = np.zeros(sim_dim)
-        u_g_sum = np.zeros(sim_dim)
-        u_v_sum = np.zeros(sim_dim)
 
         qi = agent_pos[:,i]
         pi = agent_vel[:,i]
         my_print(flag_print, "qi={}, pi={}".format(qi, pi))
 
         ''' 1、协同与避碰，alpha-alpha agent '''
+        u_alpha = np.zeros(sim_dim)
+        u_g_sum = np.zeros(sim_dim)
+        u_v_sum = np.zeros(sim_dim)
         for j in range(num_agent):
             my_print(flag_print, "--- i={}, j={}".format(i, j))
             if i==j:
@@ -134,13 +142,14 @@ def algo(agent_pos, agent_vel, agent_acc):
                 
                 # my_print(cur_print_flag, "u_g={:.2f}, u_v={:.2f}".format(np.linalg.norm(u_g), np.linalg.norm(u_v)))
                 # my_print(cur_print_flag, "u_g_sum={}, u_v_sum={}".format(u_g_sum, u_v_sum))
+        u_alpha = u_g_sum + u_v_sum
 
-        # my_print(num_agent==8, "---------N_01")
-        # my_print(num_agent==8, N_01)
-        # my_print(num_agent==8, "---------N_bump")
-        # my_print(num_agent==8, N_bump)
-        # my_print(num_agent==8, "---------N_action")
-        # my_print(num_agent==8, N_action)
+        # my_print(i==8, "---------N_01")
+        # my_print(i==8, N_01)
+        # my_print(i==8, "---------N_bump")
+        # my_print(i==8, N_bump)
+        # my_print(i==8, "---------N_action")
+        # my_print(i==8, N_action)
 
         my_print(flag_print, " ")
         ## 更新邻接矩阵
@@ -166,20 +175,22 @@ def algo(agent_pos, agent_vel, agent_acc):
                 u_beta += params.c1_beta * u_beta_g + params.c2_beta * u_beta_v
 
         ''' 3、导航：alpha-gamma agent '''
-        dpos = pos_desire - qi
-        if flag_init[i]:
-            dpos_last = agent_dpos_last[:,i]
-            u_p = params.pid_p * dpos + params.pid_d * (dpos - dpos_last) / dt
-        else:
-            flag_init[i] = True
-            u_p = params.pid_p * dpos
-            
-        my_print(cur_print_flag, "dpos    ={:.2f}, dpos=[{:.2f} {:.2f}]".format(np.linalg.norm(dpos), dpos[0], dpos[1]))
-        my_print(cur_print_flag, "u_p_norm={:.2f}, u_p =[{:.2f} {:.2f}]".format(np.linalg.norm(u_p), u_p[0], u_p[1]))
-        agent_dpos_last[:,i] = dpos
+        u_gamma = np.zeros(sim_dim)
+        # dpos = pos_desire - qi
+        # if flag_init[i]:
+        #     dpos_last = agent_dpos_last[:,i]
+        #     u_gamma = params.pid_p * dpos + params.pid_d * (dpos - dpos_last) / dt
+        # else:
+        #     flag_init[i] = True
+        #     u_gamma = params.pid_p * dpos
+        # my_print(cur_print_flag, "dpos    ={:.2f}, dpos=[{:.2f} {:.2f}]".format(np.linalg.norm(dpos), dpos[0], dpos[1]))
+        # my_print(cur_print_flag, "u_gamma_norm={:.2f}, u_gamma =[{:.2f} {:.2f}]".format(np.linalg.norm(u_gamma), u_gamma[0], u_gamma[1]))
+        # agent_dpos_last[:,i] = dpos
+
+        u_gamma = -params.c1 * ft.sigma_norm_gradient(qi-pos_desire, epsilon=1) - params.c2 * (pi - vel_desire)
 
         ## 计算加速度
-        u_sum = u_g_sum + u_v_sum + u_beta + u_p
+        u_sum = u_alpha + u_beta + u_gamma
 
         ## 更新智能体运动状态
         agent_acc[:,i] = u_sum

@@ -4,6 +4,9 @@ import functions as ft
 from params import *
 
 def draw_sigma_norm(axes, param):
+    """
+    绘制sigma norm和sigma norm gradient函数
+    """
     num = 100                           # 绘图的点个数
     z = np.linspace(-10, 10, num)       # z，自变量，横轴坐标
 
@@ -11,8 +14,8 @@ def draw_sigma_norm(axes, param):
     fun_sng = ft.sigma_norm_gradient(z, param.epsilon)
 
     # 绘制sigma norm function曲线
-    # axes.plot(z, fun_sn, label='sigma norm function')
-    axes.plot(z, fun_sng, label='gradient')
+    # axes.plot(z, fun_sn, label='sigma norm function')   # sigma norm
+    axes.plot(z, fun_sng, label='gradient')               # sigma norm gradient
 
     # 绘制y=0
     y0 = np.zeros(num)
@@ -22,8 +25,10 @@ def draw_sigma_norm(axes, param):
     axes.set_title(label="gradient, epsilon={}".format(param.epsilon), loc='center')
     axes.legend()
 
-
 def draw_bump_function(axes, param):
+    """
+    绘制bump function
+    """
     num = 100                        # 绘图的点个数
     z = np.linspace(0, 2, num)       # z，自变量，横轴坐标
 
@@ -43,6 +48,9 @@ def draw_bump_function(axes, param):
     axes.legend()
 
 def draw_uneven_sigmoidal_fucntion(axes, param):
+    """
+    绘制uneven sigmoidal fucntion
+    """
     num = 100
     z = np.linspace(-5, 5, num)
 
@@ -55,6 +63,9 @@ def draw_uneven_sigmoidal_fucntion(axes, param):
     axes.legend()
 
 def draw_action_function(axes, param):
+    """
+    绘制智能体与智能体之间的势能梯度函数
+    """
     num = 100
     z = np.linspace(0, 20, num)
 
@@ -77,23 +88,10 @@ def draw_action_function(axes, param):
     axes.set_title(label="action function, eps={},r={},d={},a={},b={}".format(param.epsilon,param.r,param.d,param.a, param.b), loc='center')
     axes.legend()
 
-
-Params.print_param()
-
-def draw(params):
-    fig = plt.figure(figsize=(10, 10))
-    ax_sn = fig.add_subplot(2,2,1)
-    ax_bf = fig.add_subplot(2,2,2)
-    ax_af = fig.add_subplot(2,2,3)
-    ax_usf = fig.add_subplot(2,2,4)
-
-    draw_sigma_norm(ax_sn, params)
-    draw_bump_function(ax_bf, params)
-    draw_action_function(ax_af, params)
-    draw_uneven_sigmoidal_fucntion(ax_usf, params)
-
-
 def draw_repulsive_action_function(axes, param):
+    """
+    绘制智能体与障碍物之间的势能梯度函数
+    """
     num = 100
     z = np.linspace(0, 20, num)
 
@@ -110,14 +108,28 @@ def draw_repulsive_action_function(axes, param):
     axes.set_title(label="action function, eps={},d_obs={},h={}".format(param.epsilon,param.d_obs,param.h), loc='center')
     axes.legend()
 
+
+def draw(params):
+    fig = plt.figure(figsize=(10, 10))
+    ax_sn = fig.add_subplot(2,2,1)
+    ax_bf = fig.add_subplot(2,2,2)
+    ax_af = fig.add_subplot(2,2,3)
+    ax_usf = fig.add_subplot(2,2,4)
+
+    draw_sigma_norm(ax_sn, params)
+    draw_bump_function(ax_bf, params)
+    draw_action_function(ax_af, params)
+    draw_uneven_sigmoidal_fucntion(ax_usf, params)
+
 def draw_obs(params):
     fig = plt.figure(figsize=(10, 10))
     ax_rac = fig.add_subplot(2,2,1)
     draw_repulsive_action_function(ax_rac, params)
 
 if __name__ == '__main__':
+    Params.print_param()
     print("draw")
-    # draw(Params)
+    draw(Params)
     draw(Params2)
     draw_obs(Params_obs)
     plt.show()

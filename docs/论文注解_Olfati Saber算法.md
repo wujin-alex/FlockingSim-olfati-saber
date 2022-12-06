@@ -103,9 +103,9 @@ $$
 >
 > - $\sigma_{\epsilon}(z)$分析
 >
-> 取值范围是[-1,1]，不同的参数$\epsilon$只会改变曲线的陡峭性，不会改变取值范围。
+> 取值范围是$[-1/\sqrt{\epsilon},1/\sqrt{\epsilon}]$，不同的参数$\epsilon$不仅改变取值范围而且会改变曲线的陡峭性。
 
-> 当$\epsilon=1$时，$\sigma_{1}(z)$曲线图如下：
+> 当$\epsilon=1$时，取值范围是$[-1,1]$，有归一化的效果，$\sigma_{1}(z)$曲线图如下：
 
 > <img src="imgs/sigmal_norm_gradient_eps=1.png" alt="sigmal_norm_gradient_eps=1" style="zoom: 67%;" />
 >

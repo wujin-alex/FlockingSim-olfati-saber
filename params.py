@@ -53,8 +53,8 @@ class Params_obs:
     """
     epsilon = 0.1            # epsilon<<1
     h = 0.3                  # h in (0,1)
-    c1 = 0.05                 # c1>0
-    c2 = 0.05                 # c2>0
+    c1 = 1                 # c1>0
+    c2 = 0.1                 # c2>0
     a = 1
     b = 5
     # 参数r和d
@@ -62,7 +62,7 @@ class Params_obs:
     d = 4                  # 智能体间距
     #
     pid_p = c1             # 位置控制环P参数
-    pid_d = 0.5            # 位置控制环D参数
+    pid_d = c2             # 位置控制环D参数
 
     # alpha-alpha agent
     c1_alpha = 1
